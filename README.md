@@ -1,5 +1,5 @@
 # Social
-
+  
 ## About the Project
 This is a fully-functional social media web application built using the MERN stack (MongoDB, Express.js, React.js, Node.js). It is designed to allow users to connect with each other, share moments, and communicate in real-time. The application features a clean, responsive UI built with Material-UI and real-time chat capabilities powered by Socket.io.
 
