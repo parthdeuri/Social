@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useUserStore } from '../../zustand';
@@ -23,11 +22,18 @@ const Register = () => {
   const [third, setThird] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const toastStyle = {
+    style: {
+      borderRadius: '12px',
+      background: '#fff',
+      color: '#1e293b',
+    }
+  };
+
   const handleFirst = async (e) => {
     try {
       e.preventDefault();
       setLoading(true);
-      // check email existance and send otp
       setEmail(emailRef.current.value.trim());
       const res = await axios.get(`/auth/email/${emailRef.current.value.trim()}`);
       if (res.data?.msg === "all ok") {
@@ -35,30 +41,36 @@ const Register = () => {
         setFirst(false);
         setSecond(true);
       } else {
-        toast.error(res.data.msg)
+        toast.error(res.data.msg, toastStyle)
       }
     }
     catch (err) {
-      toast.error(err);
+      toast.error("An error occurred", toastStyle);
     }
     setLoading(false);
   }
 
   const FirstSignup = () => {
     return (
-      <form className="p-4 " onSubmit={handleFirst}>
-        <input
-          type="email"
-          ref={emailRef}
-          className='border my-2 w-full border-black rounded text-xl p-2 bg-transparent'
-          required
-          placeholder='Email'
-          autoFocus
-          inputMode='email'
-        />
+      <form className="flex flex-col gap-4 animate-fade-in" onSubmit={handleFirst}>
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Create Account</h2>
+          <p className="text-slate-500 mb-6 text-sm">Enter your email to get started.</p>
+          <input
+            type="email"
+            ref={emailRef}
+            className='w-full bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-indigo-300 rounded-xl px-4 py-3.5 outline-none focus:ring-4 ring-indigo-50 transition-all text-slate-700 placeholder:text-slate-400 font-medium'
+            required
+            placeholder='Email address'
+            autoFocus
+            inputMode='email'
+          />
+        </div>
         <button
-          className={`text-2xl font-semibold text-center w-full bg-violet-700 rounded p-2 mt-4 text-white hover:bg-violet-500 ${loading && "cursor-not-allowed"}`}>
-          {loading ? "Loading" : "Send OTP"}
+          disabled={loading}
+          className={`w-full py-3.5 rounded-xl font-bold text-lg text-white shadow-md transition-all active:scale-[0.98] mt-2
+          ${loading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg'}`}>
+          {loading ? "Sending OTP..." : "Send OTP"}
         </button>
       </form>
     )
@@ -68,7 +80,6 @@ const Register = () => {
     try {
       e.preventDefault();
       setLoading(true);
-      // verify otp 
       if (otp.current.value.length === 6) {
         const res = await axios.post(`/auth/otp`, {
           otpId,
@@ -80,18 +91,19 @@ const Register = () => {
           setThird(true);
         }
       } else {
-        toast.error("otp should be of exactly 6-digit")
+        toast.error("OTP must be 6 digits", toastStyle)
       }
       setLoading(false);
     } catch (err) {
-      if (err.response.status === 403) {
-        toast.error("otp Mismatch");
+      if (err.response?.status === 403) {
+        toast.error("OTP mismatch", toastStyle);
       } else {
-        toast.error("Error!!!")
+        toast.error("Error verifying OTP", toastStyle)
       }
       setLoading(false);
     }
   }
+  
   const handleResendOtp = async () => {
     try {
       setLoading(true);
@@ -100,62 +112,63 @@ const Register = () => {
         setOtpId(res.data.otpId);
         setFirst(false);
         setSecond(true);
+        toast.success("OTP resent successfully", toastStyle);
       } else {
-        toast.error(res.data.msg)
+        toast.error(res.data.msg, toastStyle)
       }
       setLoading(false);
     } catch (err) {
-      toast.error(err)
+      toast.error("Error resending OTP", toastStyle)
       setLoading(false);
     }
   }
+  
   const handleWrongEmail = () => {
-    try {
-      // send wrong email
-      setEmail("");
-      setSecond(false);
-      setFirst(true);
-    } catch (err) {
-      toast.error(err)
-    }
+    setEmail("");
+    setSecond(false);
+    setFirst(true);
   }
+  
   const SecondSignup = () => {
     return (
-      <form className="p-4 " onSubmit={handleSecond}>
-        <div className=''> {`A 6-digit otp has been sent to `}
-          <span className="font-semibold text-lime-300 text-xl">{email}</span>
+      <form className="flex flex-col gap-4 animate-fade-in" onSubmit={handleSecond}>
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Verify Email</h2>
+          <p className='text-slate-500 mb-6 text-sm leading-relaxed'>
+            We sent a 6-digit code to <span className="font-semibold text-indigo-600">{email}</span>.
+          </p>
+          
+          <input type="number"
+            ref={otp}
+            className='w-full bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-indigo-300 rounded-xl px-4 py-3.5 outline-none focus:ring-4 ring-indigo-50 transition-all text-slate-700 placeholder:text-slate-400 font-medium tracking-widest text-center text-xl'
+            required
+            placeholder='------'
+            autoFocus
+            inputMode='numeric'
+          />
         </div>
-        <div className="flex justify-between">
-          <div
-            onClick={handleWrongEmail}
-            className='text-cyan-500 cursor-pointer'
-          >
-            wrong email?
-          </div>
-          <div
-            onClick={handleResendOtp}
-            className='text-cyan-500 cursor-pointer'
-          >
-            resend otp?
-          </div>
+        
+        <div className="flex justify-between items-center text-sm font-medium mt-1 mb-2">
+          <button type="button" onClick={handleWrongEmail} className='text-slate-400 hover:text-slate-600 transition-colors'>
+            Wrong email?
+          </button>
+          <button type="button" onClick={handleResendOtp} className='text-indigo-500 hover:text-indigo-600 transition-colors'>
+            Resend OTP
+          </button>
         </div>
-        <input type="number"
-          ref={otp}
-          className='border my-2 w-full border-black rounded text-xl p-2 bg-transparent '
-          required
-          placeholder='Enter 6-digit OTP'
-          autoFocus
-          inputMode='numeric'
-        />
+
         <button type='submit'
-          className={`text-2xl font-semibold text-center w-full bg-violet-700 rounded p-2 mt-4 text-white hover:bg-violet-500}  ${loading && "cursor-not-allowed"}`}>
-          {loading ? "Loading..." : "Confirm OTP"}
+          disabled={loading}
+          className={`w-full py-3.5 rounded-xl font-bold text-lg text-white shadow-md transition-all active:scale-[0.98] 
+          ${loading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg'}`}>
+          {loading ? "Verifying..." : "Confirm OTP"}
         </button>
       </form>
     )
   }
 
-  const handleThird = async () => {
+  const handleThird = async (e) => {
+    e.preventDefault();
     try {
       setLoading(true);
       const uname = username.current.value
@@ -163,24 +176,19 @@ const Register = () => {
       const pswrd = password.current.value
       const cnfPswd = confirmPassword.current.value
       if (cnfPswd === pswrd) {
-        // validate username
-        const res = await axios.get(`/auth/username/${username.current.value.trim()}`);
+        const res = await axios.get(`/auth/username/${uname.trim()}`);
         if (res.data?.msg === "username exist") {
-          // create account
           const res2 = await axios.post(`/auth/register`, {
             username: uname,
             fullname: fname,
             password: pswrd,
             email,
           })
-          // set user
           setUser(res2.data.userData);
           setToken(res2.data.token)
-          // sign in
-          // redirect to edit profile
           navigate('/editprofile');
         } else {
-          toast.error("choose a different username");
+          toast.error("Please choose a different username", toastStyle);
           setTimeout(() => {
             fullname.current.value = fname;
             password.current.value = pswrd;
@@ -188,73 +196,98 @@ const Register = () => {
           }, 10)
         }
       } else {
-        toast.error("password mismatch")
+        toast.error("Passwords do not match", toastStyle)
       }
     } catch (err) {
-      toast.error("ERROR!!!");
+      toast.error("An error occurred during registration", toastStyle);
     }
     setLoading(false);
   }
+  
   const ThirdSignup = () => {
     return (
-      <div className="p-4 " >
-        <input type="text"
-          ref={username}
-          className='my-2 border border-black w-full text-xl p-2 rounded bg-transparent'
-          autoFocus
-          required
-          placeholder='Username'
-        />
-        <input type="text"
-          ref={fullname}
-          className='border my-2 w-full border-black rounded text-xl p-2 bg-transparent'
-          required
-          placeholder='Full Name'
-          autoCapitalize='on'
-        />
-        <input type="password"
-          ref={password}
-          className='border my-2 w-full border-black rounded text-xl p-2 bg-transparent'
-          required
-          placeholder='Password'
-        />
-        <input type="password"
-          ref={confirmPassword}
-          className='border my-2 w-full border-black rounded text-xl p-2 bg-transparent'
-          required
-          placeholder='Confirm Password'
-        />
+      <form className="flex flex-col gap-4 animate-fade-in" onSubmit={handleThird}>
+        <div>
+           <h2 className="text-2xl font-bold text-slate-800 mb-2">Almost Done!</h2>
+           <p className="text-slate-500 mb-6 text-sm">Set up your profile details.</p>
+        </div>
+        
+        <div className="flex flex-col gap-3">
+            <input type="text"
+            ref={fullname}
+            className='w-full bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-indigo-300 rounded-xl px-4 py-3 outline-none focus:ring-4 ring-indigo-50 transition-all text-slate-700 placeholder:text-slate-400 font-medium'
+            required
+            placeholder='Full Name'
+            autoCapitalize='on'
+            />
+            <input type="text"
+            ref={username}
+            className='w-full bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-indigo-300 rounded-xl px-4 py-3 outline-none focus:ring-4 ring-indigo-50 transition-all text-slate-700 placeholder:text-slate-400 font-medium'
+            autoFocus
+            required
+            placeholder='Username'
+            />
+            <input type="password"
+            ref={password}
+            className='w-full bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-indigo-300 rounded-xl px-4 py-3 outline-none focus:ring-4 ring-indigo-50 transition-all text-slate-700 placeholder:text-slate-400 font-medium'
+            required
+            placeholder='Password'
+            />
+            <input type="password"
+            ref={confirmPassword}
+            className='w-full bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-indigo-300 rounded-xl px-4 py-3 outline-none focus:ring-4 ring-indigo-50 transition-all text-slate-700 placeholder:text-slate-400 font-medium'
+            required
+            placeholder='Confirm Password'
+            />
+        </div>
+        
         <button
-          onClick={handleThird}
-          className='text-2xl font-semibold text-center w-full bg-violet-700 rounded p-2 mt-4 text-white hover:bg-violet-500'>
-          {loading ? "Loading..." : "Sign Up"}
+          type="submit"
+          disabled={loading}
+          className={`w-full py-3.5 rounded-xl font-bold text-lg text-white shadow-md transition-all active:scale-[0.98] mt-2
+          ${loading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg'}`}>
+          {loading ? "Creating Account..." : "Sign Up"}
         </button>
-      </div >
-
+      </form>
     )
   }
 
   return (
-    <div className='flex justify-center items-center h-screen '>
+    <div className='flex justify-center items-center min-h-screen bg-slate-50 p-4'>
       <Toaster position='top-center' reverseOrder={false} />
 
-      <div className="w-[70%] flex md:flex-row flex-col gap-4 justify-around ">
-        <h1 className='md:hidden text-8xl font-extrabold text-violet-900 cursor-default text-center'>Social</h1>
-        <div className="hidden w-3/5 p-2 md:flex flex-col justify-center ">
-          <h1 className=' text-8xl font-extrabold text-violet-900 cursor-default'>Social</h1>
-          <span className='text-2xl cursor-default'>
-            It is a basic social media project for learning purpose only
-          </span>
+      <div className="w-full max-w-5xl flex gap-8 md:gap-12 md:flex-row flex-col justify-around items-center">
+        
+        {/* Left Side Branding */}
+        <div className="w-full md:w-1/2 flex flex-col justify-center items-center md:items-start text-center md:text-left space-y-4">
+          <h1 className='text-6xl md:text-8xl font-black text-indigo-600 tracking-tight drop-shadow-sm cursor-default'>
+            Social
+          </h1>
+          <p className='text-lg md:text-2xl font-medium text-slate-500 max-w-md leading-relaxed cursor-default'>
+            Join the community and share your moments.
+          </p>
         </div>
-        <div className=" md:w-2/5  border-2 shadow-xl rounded-lg flex flex-col justify-end">
-          {first && <FirstSignup />}
-          {second && <SecondSignup />}
-          {third && <ThirdSignup />}
-          <div className='mx-4 border-b-2 mb-2 border-slate-600 flex justify-center pb-2'>
-            <Link to={'/login'} className='text-cyan-500 cursor-pointer'>Already have account?</Link>
+        
+        {/* Right Side Form */}
+        <div className="w-full sm:max-w-md md:w-1/2 bg-white shadow-xl shadow-slate-200/50 rounded-3xl border border-slate-100 p-8 relative overflow-hidden">
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-400 to-indigo-500"></div>
+          
+          <div className="min-h-[300px] flex flex-col justify-center">
+            {first && <FirstSignup />}
+            {second && <SecondSignup />}
+            {third && <ThirdSignup />}
           </div>
-          <div className="flex justify-center my-2">
-            <span className='text-sm font-bold'>Created by Partha</span>
+          
+          <hr className="border-t border-slate-100 my-6" />
+          
+          <div className='flex justify-center'>
+            <Link to={'/login'} className='text-sm font-semibold text-slate-500 hover:text-indigo-600 transition-colors'>
+              Already have an account? <span className="text-indigo-500 hover:underline">Log in</span>
+            </Link>
+          </div>
+          
+          <div className="flex justify-center mt-6 text-xs font-semibold text-slate-400 uppercase tracking-widest">
+            Created by Partha
           </div>
         </div>
       </div>
@@ -262,4 +295,4 @@ const Register = () => {
   )
 }
 
-export default Register 
+export default Register

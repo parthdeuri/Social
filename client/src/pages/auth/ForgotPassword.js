@@ -8,13 +8,20 @@ const ForgotPassword = () => {
     const [otpConfirm, setOtpConfirm] = useState(false);
     const [loading, setLoading] = useState(false);
     const [otpId, setOtpId] = useState(null);
-    const [email, setEmail] = useState(null);
+    const [email, setEmail] = useState("");
     const emailRef = useRef();
     const otp = useRef();
     const password = useRef();
     const confirmPassword = useRef();
     const navigate = useNavigate();
 
+    const toastStyle = {
+        style: {
+            borderRadius: '12px',
+            background: '#fff',
+            color: '#1e293b',
+        }
+    };
 
     const sendOtp = async (e) => {
         e.preventDefault();
@@ -24,22 +31,21 @@ const ForgotPassword = () => {
             const res = await axios.get(`/auth/forgot/${emailRef.current.value.trim()}`);
             if (res.data?.msg === "all ok") {
                 setOtpId(res.data.otpId);
-                toast.success("mail service is  not working")
-                toast.success("OTP sent");
+                toast.success("OTP sent to your email", toastStyle);
+                setOtpSent(true);
             } else {
-                toast.error(res.data.msg)
+                toast.error(res.data.msg, toastStyle)
             }
-            setOtpSent(true);
         } catch (err) {
-            toast.error("ERROR!!!!");
+            toast.error("An error occurred", toastStyle);
         }
         setLoading(false);
     }
+    
     const confirmOtp = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            // verify otp 
             if (otp.current.value.length === 6) {
                 const res = await axios.post(`/auth/otp`, {
                     otpId,
@@ -50,95 +56,105 @@ const ForgotPassword = () => {
                     setOtpConfirm(true);
                 }
             } else {
-                toast.error("otp should be of exactly 6-digit")
+                toast.error("OTP must be exactly 6 digits", toastStyle)
             }
         } catch (err) {
-            if (err.response.status === 403) {
-                toast.error("otp  mismatch");
+            if (err.response?.status === 403) {
+                toast.error("OTP mismatch", toastStyle);
             } else {
-                toast.error("ERROR!!!!")
+                toast.error("An error occurred", toastStyle)
             }
         }
         setLoading(false);
     }
+    
     const handleWrongEmail = () => {
         setEmail("");
         setOtpSent(false);
         setOtpConfirm(false);
     }
+    
     const handleResendOtp = async () => {
         setLoading(true);
         try {
             const res = await axios.get(`/auth/forgot/${email}`);
             if (res.data?.msg === "all ok") {
                 setOtpId(res.data.otpId);
-                toast.success("OTP resent")
+                toast.success("OTP resent", toastStyle)
             } else {
-                toast.error(res.data.msg)
+                toast.error(res.data.msg, toastStyle)
             }
         } catch (err) {
-            toast.error("ERROR!!!!")
+            toast.error("An error occurred", toastStyle)
         }
         setLoading(false);
     }
+    
     const InputArea = () => {
         return (
-            <div className="p-4 ">
-                <input type="text"
-                    className='my-2 border border-black w-full text-xl p-2 rounded bg-transparent'
-                    placeholder='Enter your email'
-                    ref={emailRef}
-                />
+            <form className="flex flex-col gap-4 animate-fade-in" onSubmit={sendOtp}>
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Reset Password</h2>
+                    <p className="text-slate-500 mb-6 text-sm">Enter your email to receive a reset code.</p>
+                    <input type="email"
+                        className='w-full bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-indigo-300 rounded-xl px-4 py-3.5 outline-none focus:ring-4 ring-indigo-50 transition-all text-slate-700 placeholder:text-slate-400 font-medium'
+                        placeholder='Email address'
+                        required
+                        autoFocus
+                        ref={emailRef}
+                    />
+                </div>
                 <button
-                    onClick={(e) => sendOtp(e)}
-                    className={`text-2xl font-semibold text-center w-full bg-violet-700 rounded p-2 mt-4 text-white hover:bg-violet-500 ${loading && "cursor-not-allowed"}`}
+                    disabled={loading}
+                    className={`w-full py-3.5 rounded-xl font-bold text-lg text-white shadow-md transition-all active:scale-[0.98] mt-2
+                    ${loading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg'}`}
                 >
-                    {
-                        loading ? "Sending OTP..." : "Send OTP"
-                    }
+                    {loading ? "Sending OTP..." : "Send OTP"}
                 </button>
-            </div>
+            </form>
         )
     }
 
     const OtpArea = () => {
         return (
-            <div className="p-4 ">
-                <div className='text-white'> {`A 6-digit otp has been sent to `}
-                    <span className="font-semibold text-lime-400 text-xl">{email}</span>
+            <form className="flex flex-col gap-4 animate-fade-in" onSubmit={confirmOtp}>
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Verify Email</h2>
+                    <p className='text-slate-500 mb-6 text-sm leading-relaxed'>
+                        We sent a 6-digit code to <span className="font-semibold text-indigo-600">{email}</span>.
+                    </p>
+                    
+                    <input type="number"
+                        className='w-full bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-indigo-300 rounded-xl px-4 py-3.5 outline-none focus:ring-4 ring-indigo-50 transition-all text-slate-700 placeholder:text-slate-400 font-medium tracking-widest text-center text-xl'
+                        placeholder='------'
+                        required
+                        autoFocus
+                        ref={otp}
+                    />
                 </div>
-                <div className="flex justify-between">
-                    <div
-                        onClick={handleWrongEmail}
-                        className='text-cyan-500 cursor-pointer'
-                    >
-                        wrong email?
-                    </div>
-                    <div
-                        onClick={handleResendOtp}
-                        className='text-cyan-500 cursor-pointer'
-                    >
-                        resend otp?
-                    </div>
+                
+                <div className="flex justify-between items-center text-sm font-medium mt-1 mb-2">
+                    <button type="button" onClick={handleWrongEmail} className='text-slate-400 hover:text-slate-600 transition-colors'>
+                        Wrong email?
+                    </button>
+                    <button type="button" onClick={handleResendOtp} className='text-indigo-500 hover:text-indigo-600 transition-colors'>
+                        Resend OTP
+                    </button>
                 </div>
-                <input type="text"
-                    className='my-2 border border-black w-full text-xl p-2 rounded bg-transparent'
-                    placeholder='Enter OTP'
-                    ref={otp}
-                />
+                
                 <button
-                    onClick={(e) => confirmOtp(e)}
-                    className={`text-2xl font-semibold text-center w-full bg-violet-700 rounded p-2 mt-4 text-white hover:bg-violet-500 ${loading && "cursor-not-allowed"}`}
+                    disabled={loading}
+                    className={`w-full py-3.5 rounded-xl font-bold text-lg text-white shadow-md transition-all active:scale-[0.98] 
+                    ${loading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg'}`}
                 >
-                    {
-                        loading ? "Vrifying..." : "Confirm OTP"
-                    }
+                    {loading ? "Verifying..." : "Confirm OTP"}
                 </button>
-            </div>
+            </form>
         )
     }
 
-    const handlePasswordReset = async () => {
+    const handlePasswordReset = async (e) => {
+        e.preventDefault();
         try {
             const pswd = password.current.value;
             const cnfpswd = confirmPassword.current.value;
@@ -146,56 +162,86 @@ const ForgotPassword = () => {
                 await axios.put(`/auth/change/${email}`, {
                     password: pswd
                 })
-                navigate('/login');
+                toast.success("Password changed successfully", toastStyle);
+                setTimeout(() => {
+                   navigate('/login'); 
+                }, 1000);
+            } else {
+                toast.error("Passwords do not match", toastStyle);
             }
         } catch (err) {
-            toast.error("ERROR!!!!");
+            toast.error("An error occurred", toastStyle);
         }
     }
+    
     const PasswordArea = () => {
         return (
-            <div className="p-4 ">
-                <span className='font-semibold text-lg text-white'>Enter new Password</span>
-                <input type="text"
-                    className='my-2 border border-black w-full text-xl p-2 rounded bg-transparent'
-                    placeholder='New Password'
-                    ref={password}
-                />
-                <input type="text"
-                    className='my-2 border border-black w-full text-xl p-2 rounded bg-transparent'
-                    placeholder='Confirm New Password'
-                    ref={confirmPassword}
-                />
+            <form className="flex flex-col gap-4 animate-fade-in" onSubmit={handlePasswordReset}>
+                <div>
+                   <h2 className="text-2xl font-bold text-slate-800 mb-2">New Password</h2>
+                   <p className="text-slate-500 mb-6 text-sm">Create a strong new password.</p>
+                </div>
+                
+                <div className="flex flex-col gap-3">
+                    <input type="password"
+                        className='w-full bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-indigo-300 rounded-xl px-4 py-3 outline-none focus:ring-4 ring-indigo-50 transition-all text-slate-700 placeholder:text-slate-400 font-medium'
+                        placeholder='New Password'
+                        required
+                        autoFocus
+                        ref={password}
+                    />
+                    <input type="password"
+                        className='w-full bg-slate-50 hover:bg-slate-100/50 focus:bg-white border border-slate-200 focus:border-indigo-300 rounded-xl px-4 py-3 outline-none focus:ring-4 ring-indigo-50 transition-all text-slate-700 placeholder:text-slate-400 font-medium'
+                        placeholder='Confirm New Password'
+                        required
+                        ref={confirmPassword}
+                    />
+                </div>
+                
                 <button
-                    className={`${loading && "cursor-not-allowed"} text-2xl font-semibold text-center w-full bg-violet-700 rounded p-2 mt-4 text-white hover:bg-violet-500 `}
-                    onClick={handlePasswordReset}
+                    disabled={loading}
+                    className={`w-full py-3.5 rounded-xl font-bold text-lg text-white shadow-md transition-all active:scale-[0.98] mt-2
+                    ${loading ? 'bg-indigo-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg'}`}
                 >
-                    {loading ? "Loading..." : "Confirm"}
+                    {loading ? "Saving..." : "Change Password"}
                 </button>
-            </div>
+            </form>
         )
     }
+    
     return (
-        <div className='flex justify-center items-center h-screen '>
+        <div className='flex justify-center items-center min-h-screen bg-slate-50 p-4'>
             <Toaster position='top-center' reverseOrder={false} />
-            <div className="w-[70%] flex gap-4 flex-col md:flex-row justify-around ">
-                <h1 className='md:hidden text-center text-8xl font-extrabold text-violet-900 cursor-default'>Social</h1>
-                <div className="hidden w-3/5 p-2 md:flex flex-col justify-center ">
-                    <h1 className=' text-8xl font-extrabold text-violet-900 cursor-default'>Social</h1>
-                    <span className='text-2xl cursor-default'>
-                        It is a basic social media project for learning purpose only
-
-                    </span>
+            <div className="w-full max-w-5xl flex gap-8 md:gap-12 md:flex-row flex-col justify-around items-center">
+                
+                {/* Left Side Branding */}
+                <div className="w-full md:w-1/2 flex flex-col justify-center items-center md:items-start text-center md:text-left space-y-4">
+                  <h1 className='text-6xl md:text-8xl font-black text-indigo-600 tracking-tight drop-shadow-sm cursor-default'>
+                    Social
+                  </h1>
+                  <p className='text-lg md:text-2xl font-medium text-slate-500 max-w-md leading-relaxed cursor-default'>
+                    Get back to connecting with friends.
+                  </p>
                 </div>
-                <div className="md:w-2/5  border-2 shadow-xl rounded-lg ">
-                    {
-                        !otpSent ? <InputArea /> : !otpConfirm ? <OtpArea /> : <PasswordArea />
-                    }
-                    <div className='mx-4 border-b-2 mb-2 border-slate-600 flex justify-center pb-2'>
-                        <Link to={'/login'} className='text-cyan-500 cursor-pointer'>Return to Login</Link>
+                
+                {/* Right Side Form */}
+                <div className="w-full sm:max-w-md md:w-1/2 bg-white shadow-xl shadow-slate-200/50 rounded-3xl border border-slate-100 p-8 relative overflow-hidden">
+                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 to-rose-400"></div>
+                    
+                    <div className="min-h-[250px] flex flex-col justify-center">
+                        {!otpSent ? <InputArea /> : !otpConfirm ? <OtpArea /> : <PasswordArea />}
                     </div>
-                    <div className="flex justify-center my-2">
-                        <span className=''>Created by Partha</span>
+                    
+                    <hr className="border-t border-slate-100 my-6" />
+                    
+                    <div className='flex justify-center'>
+                        <Link to={'/login'} className='text-sm font-semibold text-indigo-500 hover:text-indigo-600 hover:underline transition-colors'>
+                            Return to Log in
+                        </Link>
+                    </div>
+                    
+                    <div className="flex justify-center mt-6 text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                        Created by Partha
                     </div>
                 </div>
             </div>
