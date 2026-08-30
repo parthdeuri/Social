@@ -16,7 +16,8 @@ const VerifyPassword = ({ newUser, setSave }) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const res = await axios.post('/auth/verify', { password: e.target[0].value },
+            const passwordValue = e.target.password.value;
+            const res = await axios.post('/auth/verify', { password: passwordValue },
                 { headers: { "Authorization": `Bearer ${token}` } })
             if (res.status === 200) {
                 const dpData = new FormData();
@@ -88,6 +89,7 @@ const VerifyPassword = ({ newUser, setSave }) => {
                         className='w-full px-4 py-3 bg-slate-50 hover:bg-slate-100 focus:bg-white rounded-xl border border-transparent focus:border-indigo-200 focus:ring-2 ring-indigo-50 transition-all text-slate-700 placeholder-slate-400 focus:outline-none'
                         placeholder='Enter your password'
                         type="password"
+                        name="password"
                         required
                     />
                 </div>
