@@ -83,7 +83,7 @@ const CoverProfile = ({ uid, userProfile }) => {
             </div>
 
             {/* Profile Info Area */}
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8 -mt-16 md:-mt-20">
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8 pt-6">
                 {/* Avatar */}
                 <div className="relative shrink-0 z-10 group cursor-pointer">
                     <img
