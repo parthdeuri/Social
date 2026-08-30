@@ -26,12 +26,9 @@ const Feed = ({ profile }) => {
         }
         fetchF();
     }, [profile, uid, user])
-    useEffect(()=>{
-        if(showPostCount>=0 && showPostCount+10<posts.length)
-            setShowPost(posts.slice(showPostCount,showPostCount+10))
-        else if (showPostCount>=0  && showPostCount+10>posts.length)
-            setShowPost(posts.slice(showPostCount,posts.length))
-    },[posts, showPost, showPostCount])
+    useEffect(() => {
+        setShowPost(posts.slice(showPostCount, showPostCount + 10));
+    }, [posts, showPostCount]);
     return (
         <div className={`${profile ? "" : "lg:w-3/5"} w-full p-2 overflow-y-scroll`}>
             <div className="">
@@ -44,7 +41,29 @@ const Feed = ({ profile }) => {
                         showPost.map(p => <Post key={p._id} post={p} setPosts={setPosts} />)
                     }
                 </div>
-                <div onClick={()=>setShowPostCount(showPostCount+10)}>Next</div>
+                <div className="flex items-center justify-between my-6 px-4">
+                    {showPostCount > 0 ? (
+                        <button 
+                            onClick={() => setShowPostCount(Math.max(0, showPostCount - 10))}
+                            className="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg shadow-md transition-colors font-medium active:scale-95"
+                        >
+                            Previous
+                        </button>
+                    ) : (
+                        <div></div>
+                    )}
+                    
+                    {showPostCount + 10 < posts.length ? (
+                        <button 
+                            onClick={() => setShowPostCount(showPostCount + 10)}
+                            className="px-6 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg shadow-md transition-colors font-medium active:scale-95"
+                        >
+                            Next
+                        </button>
+                    ) : (
+                        <div></div>
+                    )}
+                </div>
                 {
                     !profile &&
                     <FollowUsers />
