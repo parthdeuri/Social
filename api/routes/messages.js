@@ -22,12 +22,22 @@ router.post("/:convId", authUser, async (req, res) => {
     try {
         const sender = req.body.userId;
         const receiver = req.body.friendId;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
         if (sender !== req.user.userId)
             return res.status(403).json("Access Denied");
         const conv = await Conv.findById(req.params.convId);
         if (conv?.members?.includes(sender) && conv?.members?.includes(receiver)) {
-            const allMsg = await Msg.find({ convId: req.params.convId });
-            return res.status(200).json(allMsg);
+            // Sort by descending (newest first) to skip properly, then reverse in JS to return chronologically
+            const allMsg = await Msg.find({ convId: req.params.convId })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit);
+            
+            // Return chronological order
+            return res.status(200).json(allMsg.reverse());
         }
         else {
             return res.status(404).json("conversation not found")

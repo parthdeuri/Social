@@ -20,14 +20,25 @@ const Conversation = () => {
     const [arrivalMsg, setArrivalMsg] = useState([]);
     const [online, setOnline] = useState(false);
     const [currChat, setCurrChat] = useState({});
+    
+    // Pagination states
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
+
     let { convid } = useParams();
+    const messagesContainerRef = useRef(null);
     const scrollRef = useRef();
     const navigate = useNavigate();
     const [socket] = useOutletContext();
 
     useEffect(() => {
-        scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages])
+        if (isInitialLoad) {
+            scrollRef.current?.scrollIntoView({ behavior: "auto" });
+            setIsInitialLoad(false);
+        }
+    }, [messages, isInitialLoad])
 
     useEffect(() => {
         socket.emit("addUser", currUser._id);
@@ -60,8 +71,12 @@ const Conversation = () => {
     }, [convid, token])
 
     useEffect(() => {
-        arrivalMsg && currChat?.members?.includes(arrivalMsg.sender) &&
-            setMessages(prev => [...prev, arrivalMsg]);
+        if (arrivalMsg && currChat?.members?.includes(arrivalMsg.sender)) {
+            setMessages(prev => [...(prev || []), arrivalMsg]);
+            setTimeout(() => {
+                scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+            }, 100);
+        }
     }, [arrivalMsg, currChat])
 
     useEffect(() => {
@@ -85,11 +100,14 @@ const Conversation = () => {
         try {
             const getMsgs = async () => {
                 const friendId = currChat?.members?.find(m => m !== currUser?._id)
-                const res = await axios.post(`/msg/${currChat._id}`,
+                const res = await axios.post(`/msg/${currChat._id}?page=1&limit=20`,
                     { userId: currUser._id, friendId },
                     { headers: { "Authorization": `Bearer ${token}` } }
                 );
                 setMessages(res.data);
+                setPage(1);
+                setHasMore(res.data.length === 20);
+                setIsInitialLoad(true);
             }
             if (currChat._id !== undefined)
                 getMsgs();
@@ -97,6 +115,41 @@ const Conversation = () => {
             toast.error(err.response?.data || "Error");
         }
     }, [currChat._id, currChat?.members, currUser._id, token])
+
+    const loadMoreMsgs = async () => {
+        if (!hasMore || loadingMore) return;
+        setLoadingMore(true);
+        try {
+            const friendId = currChat?.members?.find(m => m !== currUser?._id);
+            const nextPage = page + 1;
+            const res = await axios.post(`/msg/${currChat._id}?page=${nextPage}&limit=20`,
+                { userId: currUser._id, friendId },
+                { headers: { "Authorization": `Bearer ${token}` } }
+            );
+            
+            if (res.data.length > 0) {
+                // Save current scroll height to restore scroll position
+                const container = messagesContainerRef.current;
+                const scrollHeightBefore = container ? container.scrollHeight : 0;
+                
+                setMessages(prev => [...res.data, ...prev]);
+                setPage(nextPage);
+                setHasMore(res.data.length === 20);
+
+                // Restore scroll position so it doesn't jump to top
+                setTimeout(() => {
+                    if (container) {
+                        container.scrollTop = container.scrollHeight - scrollHeightBefore;
+                    }
+                }, 10);
+            } else {
+                setHasMore(false);
+            }
+        } catch (err) {
+            toast.error(err.response?.data || "Error");
+        }
+        setLoadingMore(false);
+    }
 
     const base64 = (file) => {
         return new Promise((resolve, reject) => {
@@ -141,6 +194,10 @@ const Conversation = () => {
                     setMessages([...messages, res.data]);
                 else
                     setMessages([res.data]);
+                
+                setTimeout(() => {
+                    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+                }, 100);
                 if(document.getElementById("msg-inp-text")) document.getElementById("msg-inp-text").value = "";
                 if(document.getElementById("msg-inp-img")) document.getElementById("msg-inp-img").value = null;
                 setNewImg("");
@@ -226,7 +283,7 @@ const Conversation = () => {
             </div>
             
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 bg-slate-50/30">
+            <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 bg-slate-50/30">
                 {!messages && (
                     <div className='h-full flex justify-center items-center'>
                         <span className='font-medium text-slate-400'>Loading chat...</span>
@@ -241,9 +298,28 @@ const Conversation = () => {
                         <span className="text-sm">Start the conversation with a nice message.</span>
                     </div>
                 )}
+                
+                {messages?.length > 0 && (
+                    <div className="flex justify-center mb-4">
+                        {hasMore ? (
+                            <button 
+                                onClick={loadMoreMsgs}
+                                disabled={loadingMore}
+                                className="px-4 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-semibold text-slate-500 hover:text-indigo-600 hover:border-indigo-200 transition-colors shadow-sm disabled:opacity-50"
+                            >
+                                {loadingMore ? "Loading..." : "Load Older Messages"}
+                            </button>
+                        ) : (
+                            <span className="text-xs font-medium text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
+                                No more texts to fetch
+                            </span>
+                        )}
+                    </div>
+                )}
+
                 <div className="flex flex-col justify-end min-h-full">
-                    {messages?.map(m => (
-                        <div key={m?._id} ref={scrollRef}>
+                    {messages?.map((m, index) => (
+                        <div key={m?._id || index} ref={index === messages.length - 1 ? scrollRef : null}>
                             <Msg m={m} own={m.sender === currUser?._id} />
                         </div>
                     ))}
