@@ -1,22 +1,15 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
-import { socket } from '../App';
+import { useUserStore } from '../zustand';
 
 const MsgLeftListItem = ({ c, currUser, active }) => {
+    const newMessages = useUserStore(s => s.newMessages);
+    const removeNewMessage = useUserStore(s => s.removeNewMessage);
     const [friend, setFriend] = useState(null);
-    const [newMsg, setNewMsg] = useState(false);
-    
-    useEffect(() => {
-        const friendId = c.members.find(m => m !== currUser._id)
-        socket.on("getMsg", data => {
-            if (data.senderId === friendId) setNewMsg(true);
-        })
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    const friendId = c.members.find(m => m !== currUser._id);
+    const newMsg = newMessages.includes(friendId);
 
     useEffect(() => {
-        const friendId = c.members.find(m => m !== currUser._id)
-
         try {
             const getFriend = async () => {
                 const res = await axios.get(`/users/${friendId}`);
@@ -26,7 +19,7 @@ const MsgLeftListItem = ({ c, currUser, active }) => {
         } catch (err) {
             console.log(err)
         }
-    }, [c._id, c.members, currUser._id])
+    }, [friendId])
     
     return (
         <>
@@ -34,7 +27,7 @@ const MsgLeftListItem = ({ c, currUser, active }) => {
                 friend?.fullname &&
 
                 <div
-                    onClick={() => setNewMsg(false)}
+                    onClick={() => removeNewMessage(friendId)}
                     className={`flex items-center px-4 py-3 gap-3 rounded-xl mb-1 cursor-pointer transition-all border ${
                         active 
                         ? 'bg-indigo-50 border-indigo-100 shadow-sm' 

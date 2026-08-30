@@ -12,6 +12,8 @@ import SendIcon from '@mui/icons-material/Send';
 const Conversation = () => {
     const currUser = useUserStore(s => s.user);
     const token = useUserStore(s => s.token);
+    const setActiveChatUserId = useUserStore(s => s.setActiveChatUserId);
+    const removeNewMessage = useUserStore(s => s.removeNewMessage);
     const [messages, setMessages] = useState(null);
     const [friend, setFriend] = useState(null);
     const [newMsg, setNewMsg] = useState("");
@@ -45,7 +47,7 @@ const Conversation = () => {
     }, [currUser._id, socket])
 
     useEffect(() => {
-        socket.on("getMsg", data => {
+        const handleMsg = (data) => {
             setArrivalMsg({
                 _id: Date.now(),
                 sender: data.senderId,
@@ -53,7 +55,12 @@ const Conversation = () => {
                 image: data.image,
                 createdAt: Date.now(),
             })
-        })
+        };
+        socket.on("getMsg", handleMsg);
+        
+        return () => {
+            socket.off("getMsg", handleMsg);
+        };
     }, [socket])
     useEffect(() => {
 
@@ -89,13 +96,21 @@ const Conversation = () => {
             const getFriend = async () => {
                 const res = await axios.get(`/users/${friendId}`);
                 setFriend(res.data);
+                if (friendId) {
+                    setActiveChatUserId(friendId);
+                    removeNewMessage(friendId);
+                }
             }
             if (friendId !== undefined)
                 getFriend();
         } catch (err) {
             console.log(err)
         }
-    }, [currChat?.members, currUser?._id, socket])
+        
+        return () => {
+            setActiveChatUserId(null);
+        };
+    }, [currChat?.members, currUser?._id, socket, setActiveChatUserId, removeNewMessage])
     useEffect(() => {
         try {
             const getMsgs = async () => {

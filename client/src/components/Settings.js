@@ -66,10 +66,10 @@ const Settings = ({ socket, setSettings }) => {
                         <span>Delete Account</span>
                     </Link>
                     
-                    <div className="p-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-indigo-600 cursor-pointer flex gap-3 items-center transition-colors">
+                    {/* <div className="p-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-indigo-600 cursor-pointer flex gap-3 items-center transition-colors">
                         <div className="bg-slate-100 p-1.5 rounded-lg text-slate-500"><HelpIcon fontSize="small"/></div>
                         <span>Help & Support</span>
-                    </div>
+                    </div> */}
                     
                     <Link to={"/about"} className="p-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-indigo-600 cursor-pointer flex gap-3 items-center transition-colors">
                         <div className="bg-slate-100 p-1.5 rounded-lg text-slate-500"><InfoIcon fontSize="small"/></div>

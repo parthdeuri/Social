@@ -12,25 +12,35 @@ import { socket } from '../App';
 
 const TopBar = () => {
   const user = useUserStore(s => s.user);
+  const newMessages = useUserStore(s => s.newMessages);
+  const addNewMessage = useUserStore(s => s.addNewMessage);
+  const activeChatUserId = useUserStore(s => s.activeChatUserId);
   const [settings, setSettings] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [newMsgList, setNewMsgList] = useState([]);
   const navigate = useNavigate();
   
   useEffect(() => {
-    socket.on("getMsg", data => {
-      toast("Received a new Message", {
-        style: {
-          border: '1px solid #e2e8f0',
-          background: '#fff',
-          color: '#1e293b',
-          borderRadius: '12px',
-          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-        },
-      });
-      setNewMsgList(prev => [...prev, data.senderId]);
-    })
-  }, [])
+    const handleNewMsg = (data) => {
+      if (data.senderId !== activeChatUserId) {
+        toast("Received a new Message", {
+          style: {
+            border: '1px solid #e2e8f0',
+            background: '#fff',
+            color: '#1e293b',
+            borderRadius: '12px',
+            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+          },
+        });
+        addNewMessage(data.senderId);
+      }
+    };
+    
+    socket.on("getMsg", handleNewMsg);
+    
+    return () => {
+        socket.off("getMsg", handleNewMsg);
+    };
+  }, [activeChatUserId, addNewMessage])
 
 
   const handleSearch = async (e) => {
@@ -91,10 +101,10 @@ const TopBar = () => {
           <Link to={'/messenger'} className="relative hidden md:flex items-center justify-center h-10 w-10 rounded-full text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-300">
             <MessageIcon />
             {
-              newMsgList.length > 0 &&
+              newMessages.length > 0 &&
               <span
                 className='absolute top-1.5 right-1.5 text-[10px] font-bold bg-rose-500 text-white rounded-full h-4 w-4 flex items-center justify-center ring-2 ring-white shadow-sm animate-bounce'>
-                {newMsgList.length}
+                {newMessages.length}
               </span>
             }
           </Link>
