@@ -4,7 +4,6 @@ import axios from 'axios'
 import MsgLeftListItem from '../../components/MsgLeftListItem'
 import { Outlet, useNavigate, useParams } from 'react-router-dom'
 import { socket } from '../../App'
-// import { io } from 'socket.io-client'
 
 const Messenger = () => {
     const setUser = useUserStore(s => s.setUser);
@@ -17,6 +16,7 @@ const Messenger = () => {
     const [openChat, setOpenChat] = useState(false);
     const navigate = useNavigate();
     let { convid } = useParams();
+    
     useEffect(() => {
         if (convid) {
             setOpenChat(true);
@@ -24,8 +24,8 @@ const Messenger = () => {
             setOpenChat(false);
         }
     }, [convid])
+    
     useEffect(() => {
-        // socket= io(process.env.REACT_APP_SOCKET_URL);
         socket.emit("addUser", user._id);
         const fetchUser = async () => {
             const res = await axios.get(`/users/${user._id}`);
@@ -34,6 +34,7 @@ const Messenger = () => {
         fetchUser();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
+    
     useEffect(() => {
         try {
             const getFollowings = async () => {
@@ -49,12 +50,11 @@ const Messenger = () => {
             setOnlineUsers(
                 user.followings.filter(f => users.some(u => u.userId === f))
             );
-            // console.log("user",users);
         });
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [socket, user._id])
-    // console.log(newMsgList);
+    
     useEffect(() => {
         try {
             const fetchConv = async () => {
@@ -67,10 +67,11 @@ const Messenger = () => {
             console.log(err)
         }
     }, [token, user])
-    // console.log(allConv, "all");
+    
     useEffect(() => {
         setOnlineFriends(friendList.filter(f => onlineUsers.includes(f._id)))
     }, [onlineUsers, friendList])
+    
     const handleOnlineClick = async ({ fid }) => {
         try {
             const res = await axios.post('/conv', {
@@ -79,70 +80,81 @@ const Messenger = () => {
             }, { headers: { "Authorization": `Bearer ${token}` } }
             )
             navigate(`/messenger/${res.data[0]._id}`);
-                // setCurrChat(res.data[0]);
         } catch (err) {
             console.log(err);
         }
-
     }
 
     return (
-        <div>
-            <div className="flex h-[calc(100dvh-56px)] ">
-                <div className={`${openChat ? "hidden" : "block"} w-full md:block  md:w-1/5 p-2 h-full`}>
-                    <div className="shadow-lg border h-full rounded-lg">
-                        <div className="">
-                            <h1 className='font-bold bg-slate-300 rounded px-2 py-1 '> Online</h1>
-                            <div className="flex online gap-2 p-2 overflow-x-scroll">
-                                {
-                                    onlineFriends.length === 0 &&
-                                    <div
-                                        className="px-2 pt-1 w-full text-xl font-semibold flex justify-center text-slate-500"
-                                    >
-                                        <span>No one is online</span>
-                                    </div>
-                                }
-                                {
-                                    onlineFriends.map(f => (
-                                        <div
-                                            onClick={() => handleOnlineClick({ fid: f._id })}
-                                            key={f._id}
-                                            className="relative h-12 w-12 aspect-square ">
-                                            <img
-                                                className='h-12 w-12 rounded-full cursor-pointer'
-                                                src={f.profilePic || ""}
-                                                alt="" />
-                                            <span className='bg-lime-500 border-2 border-white top-0 p-[4px] h-0.5 w-0.5 rounded-full absolute right-[-1px] '></span>
-                                        </div>
-                                    ))
-                                }
-                            </div>
+        <div className="h-[calc(100dvh-56px)] bg-slate-50/50 p-2 md:p-4">
+            <div className="flex h-full gap-4 max-w-7xl mx-auto">
+                <div className={`${openChat ? "hidden" : "flex"} w-full md:flex md:w-1/3 lg:w-1/4 h-full flex-col bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden`}>
+                    
+                    <div className="shrink-0 border-b border-slate-100">
+                        <div className="px-4 py-3 flex items-center justify-between bg-slate-50/50">
+                            <h1 className='text-xs font-bold text-slate-400 uppercase tracking-widest'>Online Friends</h1>
                         </div>
-                        <h1 className='font-bold bg-slate-300 rounded px-2 py-1 my-1 w-full'> Conversations </h1>
-                        <div className="overflow-y-scroll h-[calc(100%-8.7rem)] w-full">
-                            <hr className='border-t mt-1 mx-1 ' />
+                        <div className="flex gap-3 p-4 overflow-x-auto scrollbar-hide">
                             {
-                                allConv.length !== 0 &&
-                                allConv.map(c => (
+                                onlineFriends.length === 0 &&
+                                <div className="w-full text-sm font-medium flex justify-center text-slate-400 italic">
+                                    <span>No friends online</span>
+                                </div>
+                            }
+                            {
+                                onlineFriends.map(f => (
                                     <div
-                                        className="" key={c._id}
-                                        onClick={() => {
-                                            navigate(`/messenger/${c._id}`)
-                                        }}
-                                    >
-                                        <MsgLeftListItem
-                                            c={c}
-                                            currUser={user}
-
-                                        />
+                                        onClick={() => handleOnlineClick({ fid: f._id })}
+                                        key={f._id}
+                                        className="relative shrink-0 cursor-pointer group">
+                                        <img
+                                            className='h-12 w-12 rounded-full object-cover ring-2 ring-transparent group-hover:ring-emerald-100 transition-all'
+                                            src={f.profilePic || "https://i.pinimg.com/236x/9a/e8/fc/9ae8fc22197c56c5e5b0c2c22b05186e.jpg"}
+                                            alt="" />
+                                        <span className='absolute bottom-0 right-0 h-3 w-3 bg-emerald-500 border-2 border-white rounded-full'></span>
                                     </div>
                                 ))
                             }
                         </div>
                     </div>
+                    
+                    <div className="px-4 py-3 flex items-center justify-between bg-slate-50/50 border-b border-slate-100">
+                        <h1 className='text-xs font-bold text-slate-400 uppercase tracking-widest'>Recent Chats</h1>
+                    </div>
+                    <div className="overflow-y-auto flex-1 p-2">
+                        {
+                            allConv.length !== 0 ?
+                            allConv.map(c => (
+                                <div
+                                    className="" key={c._id}
+                                    onClick={() => {
+                                        navigate(`/messenger/${c._id}`)
+                                    }}
+                                >
+                                    <MsgLeftListItem
+                                        c={c}
+                                        currUser={user}
+                                        active={convid === c._id}
+                                    />
+                                </div>
+                            )) : (
+                                <div className="h-full flex flex-col items-center justify-center text-slate-400">
+                                    <span className="text-sm">No recent conversations.</span>
+                                </div>
+                            )
+                        }
+                    </div>
                 </div>
-                <div className={`${openChat ? "block" : "hidden"} md:block md:w-4/5 w-full p-2 h-full`}>
-                    <Outlet context={[socket]} />
+                
+                <div className={`${openChat ? "block" : "hidden"} md:block md:w-2/3 lg:w-3/4 h-full`}>
+                    {convid ? (
+                        <Outlet context={[socket]} />
+                    ) : (
+                        <div className="h-full bg-white rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center text-slate-400">
+                            <span className="text-lg font-medium text-slate-600 mb-2">Your Messages</span>
+                            <span className="text-sm">Select a chat or start a new conversation.</span>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
