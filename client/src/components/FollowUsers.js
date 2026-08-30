@@ -48,10 +48,10 @@ const FollowUsers = () => {
     }
     
     return (
-        <div className="mt-8 mb-4">
+        <div className="mt-8 mb-4 max-w-3xl mx-auto px-4 lg:px-0">
             <div className="flex items-center gap-4 mb-6 px-2">
                 <div className="h-px bg-slate-200 flex-1"></div>
-                <span className='text-sm font-bold text-slate-400 uppercase tracking-widest'>Suggested For You</span>
+                <span className='text-sm font-bold text-slate-400 uppercase tracking-widest'>Follow Users to see their Posts</span>
                 <div className="h-px bg-slate-200 flex-1"></div>
             </div>
             

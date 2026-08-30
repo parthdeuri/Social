@@ -94,7 +94,7 @@ const Login = () => {
           </div>
           
           <div className="flex justify-center mt-8 text-xs font-semibold text-slate-400 uppercase tracking-widest">
-            Created by Partha
+            Created by Parthapartim Deuri
           </div>
         </div>
       </div>
