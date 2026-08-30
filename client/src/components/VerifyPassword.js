@@ -3,6 +3,7 @@ import { useUserStore } from '../zustand'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import CloseIcon from '@mui/icons-material/Close';
 
 const VerifyPassword = ({ newUser, setSave }) => {
     const user = useUserStore(s => s.user)
@@ -10,6 +11,7 @@ const VerifyPassword = ({ newUser, setSave }) => {
     const setUser = useUserStore(s => s.setUser)
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -42,7 +44,9 @@ const VerifyPassword = ({ newUser, setSave }) => {
                 const res2 = await axios.put(`/users/${user._id}`, newUser,
                     { headers: { "Authorization": `Bearer ${token}` } })
                 setTimeout(() => {
-                    toast.success("Updated successfully")
+                    toast.success("Updated successfully", {
+                        style: { borderRadius: '12px', background: '#fff', color: '#1e293b' }
+                    })
                     setUser(res2.data);
                 }, 10)
                 navigate(`/profile/${res2.data._id}`);
@@ -51,42 +55,60 @@ const VerifyPassword = ({ newUser, setSave }) => {
             }
         } catch (err) {
             console.log(err);
-            toast.error(err.response.data);
+            toast.error(err.response?.data || "An error occurred");
         }
         setLoading(false);
     }
+    
     return (
-        <div className='absolute w-full h-[calc(100vh-60px)]  z-10 p-2'>
-
-            <div className=" p-2 flex  justify-center items-center h-full ">
-                <form
-                    onSubmit={handleSubmit}
-                    className="bg-violet-400 p-4 rounded-xl md:w-[30%] h-[50%] flex flex-col justify-between shadow-xl border relative z-40">
-                    <div
-                        onClick={() => setSave(false)}
-                        className='absolute font-bold bg-red text-white rounded-full bg-red-500 h-8 w-8 flex justify-center items-center aspect-square -top-4 -right-4 cursor-pointer border border-black'>
-                        X
+        <div className='fixed inset-0 z-50 flex justify-center items-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in'>
+            <form
+                onSubmit={handleSubmit}
+                className="bg-white p-6 rounded-3xl w-full max-w-sm flex flex-col shadow-2xl border border-slate-100 relative">
+                
+                <button
+                    type="button"
+                    onClick={() => setSave(false)}
+                    className='absolute top-4 right-4 bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-500 rounded-full p-2 transition-colors'>
+                    <CloseIcon fontSize="small" />
+                </button>
+                
+                <div className="flex flex-col items-center mb-6 mt-2">
+                    <div className="h-12 w-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
                     </div>
-                    <div className="font-bold text-center mb-4 p-2 rounded bg-violet-600 text-white">
-                        <span>Verify User</span>
-                    </div>
-                    <div className="">
-                        <span className='text-sm'>Please verify yourself before saving changes</span>
-                        <input
-                            className='rounded px-2 py-1 my-2 w-full'
-                            placeholder='Password'
-                            type="password"
-                            name="" id=""
-                            required
-                        />
-                    </div>
-                    <button
-                        className={`border-2 px-2 py-1 w-full rounded font-bold text-white               hover:bg-slate-300 ${loading && "cursor-not-allowed"} `}
-                    >
-                        {loading ? "Verifying..." : "Confirm"}
-                    </button>
-                </form>
-            </div>
+                    <h2 className="font-bold text-xl text-slate-800">Verify Identity</h2>
+                    <p className='text-sm text-slate-500 text-center mt-1'>Please enter your password to save these changes.</p>
+                </div>
+                
+                <div className="mb-6">
+                    <input
+                        className='w-full px-4 py-3 bg-slate-50 hover:bg-slate-100 focus:bg-white rounded-xl border border-transparent focus:border-indigo-200 focus:ring-2 ring-indigo-50 transition-all text-slate-700 placeholder-slate-400 focus:outline-none'
+                        placeholder='Enter your password'
+                        type="password"
+                        required
+                    />
+                </div>
+                
+                <button
+                    disabled={loading}
+                    className={`w-full py-3 rounded-xl font-bold transition-all shadow-sm flex justify-center items-center
+                    ${loading 
+                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
+                        : 'bg-indigo-600 hover:bg-indigo-700 text-white active:scale-95'}`}
+                >
+                    {loading ? (
+                        <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                            <span>Verifying...</span>
+                        </div>
+                    ) : (
+                        "Confirm Changes"
+                    )}
+                </button>
+            </form>
         </div>
     )
 }

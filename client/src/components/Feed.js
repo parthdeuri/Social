@@ -71,7 +71,7 @@ const Feed = ({ profile }) => {
                     profile &&
                     <Link
                         to={'/'}
-                        className="flex justify-center my-2 p-2 border rounded-md bg-violet-400 text-white font-semibold text-xl">
+                        className="flex items-center justify-center gap-2 mt-4 mb-2 p-3 bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-md hover:bg-indigo-50 text-indigo-600 font-semibold text-sm rounded-xl transition-all active:scale-95">
                         <span>Go Home</span>
                     </Link>
                 }
