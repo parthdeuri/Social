@@ -141,6 +141,7 @@ router.put('/:id/delete', authUser, async (req, res) => {
             await Promise.all(
                 currUser.followers.map(fId => User.findByIdAndUpdate(fId, { $pull: { followings: req.params.id } }))
             )
+            await Post.updateMany({ likes: req.params.id }, { $pull: { likes: req.params.id } });
             await currUser.deleteOne();
             return res.status(200).json("Account has been deleted");
         }
@@ -156,6 +157,7 @@ router.put('/:id/delete', authUser, async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const currUser = await User.findById(req.params.id, { password: 0, updatedAt: 0 });
+        if (!currUser) return res.status(404).json("user not found");
         res.status(200).json(currUser)
 
     } catch (err) {
