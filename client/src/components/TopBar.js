@@ -108,7 +108,7 @@ const TopBar = () => {
               ) : (
                 <MenuIcon
                   onClick={() => setSettings(!settings)}
-                  className='cursor-pointer hidden' // Keeping original hidden class if it was there
+                  className='cursor-pointer'
                 />
               )
             }
