@@ -12,7 +12,7 @@ Users can register, create text or media posts, interact with others through lik
 - **Email:** demo@p.com 
 - **Password:** demo@123
 
-[Click here to visit the live site](https://social-by-partha.onrender.com)
+[Live site](https://www.social.is-great.net/)
 
 ## Features
 - **User Authentication:** Secure registration, login, and logout using JWT and bcrypt.
