@@ -5,7 +5,7 @@ const SOCKET_HOST = process.env.HOST
 
 const io = require("socket.io")(SOCKET_PORT, {
     cors: {
-        origin: SOCKET_HOST,
+        origin: SOCKET_HOST ? SOCKET_HOST.split(',') : "*",
     },
 })
 
