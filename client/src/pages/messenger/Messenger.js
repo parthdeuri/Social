@@ -146,7 +146,7 @@ const Messenger = () => {
                     </div>
                 </div>
                 
-                <div className={`${openChat ? "block" : "hidden"} md:block md:w-2/3 lg:w-3/4 h-full`}>
+                <div className={`${openChat ? "block" : "hidden"} w-full md:block md:w-2/3 lg:w-3/4 h-full`}>
                     {convid ? (
                         <Outlet context={[socket]} />
                     ) : (
