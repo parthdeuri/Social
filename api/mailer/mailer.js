@@ -7,16 +7,11 @@ const PASSWORD = process.env.PASSWORD;
 
 let config = {
   host: "smtp-relay.brevo.com",
-  port: 587,
+  port: 2525, // Using 2525 as port 587 is often blocked by hosting providers
   secure: false,
-  service: 'brevo',
   auth: {
-    type: 'login',
     user: EMAIL,
     pass: PASSWORD
-  },
-  tls: {
-    ciphers: 'SSLv3'
   }
 }
 
