@@ -73,5 +73,25 @@ const sendMail = async ({ name, userEmail, text, subject, code }) => {
   });
 }
 
+const sendTestMail = async ({ userEmail }) => {
+  let message = {
+    from: EMAIL,
+    to: userEmail,
+    subject: "Test Mail Service",
+    text: "The mailing service is working."
+  }
 
-module.exports = { sendMail };
+  return new Promise((resolve, reject) => {
+    transporter.sendMail(message, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+        reject({ error: error, msg: "mail not sent" });
+      } else {
+        console.log('Email sent:', info.response);
+        resolve({ msg: "You should receive an email from us." });
+      }
+    });
+  });
+}
+
+module.exports = { sendMail, sendTestMail };

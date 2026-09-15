@@ -52,4 +52,16 @@ app.get('/api', (req, res) => {
     res.status(200).json("i am alive");
 })
 
-
+const { sendTestMail } = require('./mailer/mailer');
+app.post('/api/mail-test', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ msg: "Email is required in the request body" });
+        }
+        const result = await sendTestMail({ userEmail: email });
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json(error);
+    }
+});
