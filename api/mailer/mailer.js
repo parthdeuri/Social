@@ -69,10 +69,42 @@ const sendMail = async ({ name, userEmail, text, subject, code }) => {
 }
 
 const sendTestMail = async ({ userEmail }) => {
+  const html_body = `
+  <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 40px 0; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+      <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 1px;">Connection Successful!</h1>
+      </div>
+      <div style="padding: 40px 30px; text-align: center;">
+        <div style="background-color: #e8f5e9; color: #2e7d32; display: inline-block; padding: 15px 25px; border-radius: 50px; font-weight: 600; margin-bottom: 25px;">
+          ✓ Mailing Service is Active
+        </div>
+        <p style="font-size: 16px; line-height: 1.6; color: #555; margin-bottom: 20px;">
+          Hi there,
+        </p>
+        <p style="font-size: 16px; line-height: 1.6; color: #555; margin-bottom: 30px;">
+          This is a confirmation that your backend email configuration is set up correctly and the mail service is working perfectly.
+        </p>
+        <a href="#" style="display: inline-block; background-color: #667eea; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 5px; font-weight: 500;">
+          Awesome!
+        </a>
+      </div>
+      <div style="background-color: #f9f9f9; padding: 20px; text-align: center; border-top: 1px solid #eeeeee;">
+        <p style="font-size: 12px; color: #999; margin: 0;">
+          © ${new Date().getFullYear()} Social App. All rights reserved.
+        </p>
+        <p style="font-size: 12px; color: #999; margin: 5px 0 0 0;">
+          Developed by Parthapratim Deuri
+        </p>
+      </div>
+    </div>
+  </div>`;
+
   let message = {
     from: EMAIL,
     to: userEmail,
-    subject: "Test Mail Service",
+    subject: "✨ Social App: Mail Service is Working!",
+    html: html_body,
     text: "The mailing service is working."
   }
 
